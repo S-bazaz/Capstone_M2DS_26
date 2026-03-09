@@ -18,6 +18,7 @@ class RobustNetwork:
         self.n_pairs = n_pairs
         self.node_count = 0
         self.support_length = support_length
+        self.demand_pairs = None
 
     def add_point(self, x, y, connected=False, is_initial=False):
         """
@@ -154,8 +155,6 @@ class RobustNetwork:
             Parcourt le graphe et découpe les arêtes dont la longueur dépasse max_length
             en n segments de taille égale (inférieure ou égale à max_length).
             """
-            # ⚠️ CRUCIAL : On fige la liste des arêtes avec list() avant de boucler.
-            # Sinon, modifier le graphe pendant qu'on le parcourt provoque une erreur.
             edges_to_check = list(self.G.edges())
             
             for u, v in edges_to_check:
@@ -512,43 +511,28 @@ class RobustNetwork:
         else:
             plt.close() # Libère la mémoire si on ne fait que sauvegarder
 
-    def save(self, graph_name, base_dir="tests_2/graphs"):
-        """
-        Crée un sous-dossier graph_name et y sauvegarde le pickle et le plot.
-        """
-        # Création du chemin vers le sous-dossier (ex: test_2/graphs/mon_reseau_1)
+    def save(self, graph_name, base_dir="graphs"):
         target_dir = Path(base_dir) / graph_name
-        
-        # Création du dossier et de ses parents si nécessaire
         target_dir.mkdir(parents=True, exist_ok=True)
         
         pkl_path = target_dir / f"{graph_name}.pkl"
         png_path = target_dir / f"{graph_name}.png"
-        
-        # 1. Sauvegarde visuelle (sans bloquer l'exécution avec show=False)
         self.plot(save_path=png_path, show=False)
-        
-        # 2. Sauvegarde de l'objet Python
         with open(pkl_path, 'wb') as f:
             pickle.dump(self, f)
-            
-        print(f"💾 Réseau '{graph_name}' sauvegardé avec succès dans : {target_dir}")
 
     @classmethod
-    def load(cls, graph_name, base_dir="tests_2/graphs"):
-        """
-        Recharge une instance depuis son sous-dossier.
-        """
-        pkl_path = Path(base_dir) / graph_name / f"{graph_name}.pkl"
-        
+    def load(cls, graph_name, base_dir="graphs"):
+        path = Path(base_dir) / graph_name / f"{graph_name}.pkl"
         try:
-            with open(pkl_path, 'rb') as f:
+            with open(path, 'rb') as f:
                 network = pickle.load(f)
-            print(f"📂 Réseau '{graph_name}' chargé avec succès depuis : {pkl_path}")
             return network
         except FileNotFoundError:
-            print(f"Erreur : Le fichier '{pkl_path}' est introuvable.")
+            print(f"Erreur : Le fichier '{path}' est introuvable.")
             return None
+
+
 # # Execution
 # net = RobustNetwork(n_nodes = 15, n_segments=30)
 # # 1. Génération
@@ -567,5 +551,3 @@ class RobustNetwork:
 # net.generate_demand_pairs()
 
 # net.plot()
-
-# #python -m tests_2.graph
